@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PAINT.ML — Variant B: Terminal Phosphor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a05;
+    --amber: #ffb000;
+    --amber-dim: #aa7500;
+    --green: #33ff33;
+    --green-dim: #226622;
+    --white: #e8e0d0;
+    --dim: #665544;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--amber);
+    font-family: 'IBM Plex Mono', 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    text-shadow: 0 0 2px rgba(255, 176, 0, 0.5), 0 0 6px rgba(255, 176, 0, 0.2);
+  }
+  /* Scanlines + CRT vignette */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent 0, transparent 2px, rgba(0, 0, 0, 0.3) 2px, rgba(0, 0, 0, 0.3) 3px);
+    pointer-events: none;
+    z-index: 100;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.5) 100%);
+    pointer-events: none;
+    z-index: 99;
+  }
+
+  .container { max-width: 960px; margin: 0 auto; padding: 2rem; }
+
+  /* Boot bar */
+  .bootbar {
+    border-bottom: 1px solid var(--amber-dim);
+    padding: 0.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--amber-dim);
+  }
+  .bootbar .green { color: var(--green); text-shadow: 0 0 4px rgba(51, 255, 51, 0.5); }
+
+  /* ASCII Header */
+  pre.ascii { margin: 0; font-family: inherit; color: var(--amber); white-space: pre; overflow-x: auto; line-height: 1.1; font-size: 0.85rem; font-weight: 500; }
+
+  h1 {
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 2rem;
+    letter-spacing: 0.05em;
+    margin: 0 0 0.5rem;
+    color: var(--amber);
+    text-shadow: 0 0 4px rgba(255, 176, 0, 0.7), 0 0 12px rgba(255, 176, 0, 0.3);
+  }
+  .version { color: var(--green); text-shadow: 0 0 4px rgba(51, 255, 51, 0.5); }
+
+  .hero { padding: 3rem 0 2rem; }
+  .hero-prompt { color: var(--green); text-shadow: 0 0 4px rgba(51, 255, 51, 0.5); margin-bottom: 0.25rem; }
+  .hero-out { color: var(--white); margin-left: 0; }
+  .hero-out .dim { color: var(--dim); }
+  .cursor { display: inline-block; width: 0.6em; height: 1.1em; background: var(--amber); vertical-align: text-bottom; animation: blink 1s steps(2) infinite; margin-left: 2px; box-shadow: 0 0 4px rgba(255, 176, 0, 0.7); }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .tags { margin-top: 1.5rem; display: flex; flex-wrap: wrap; gap: 0.75rem; }
+  .tag { color: var(--green); border: 1px solid var(--green-dim); padding: 0.15rem 0.6rem; font-size: 0.75rem; text-shadow: 0 0 3px rgba(51, 255, 51, 0.4); }
+
+  /* Section dividers */
+  .divider { color: var(--amber-dim); margin: 2.5rem 0 1.25rem; font-size: 0.8rem; letter-spacing: 0.05em; }
+
+  /* Demos - as ls -lh output style */
+  .demos { border: 1px solid var(--amber-dim); padding: 1rem 1.25rem; }
+  .demos-header { color: var(--dim); font-size: 0.72rem; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px dashed var(--amber-dim); display: grid; grid-template-columns: 80px 80px 1fr 100px; gap: 1rem; text-transform: uppercase; letter-spacing: 0.1em; }
+  .demo-row {
+    display: grid;
+    grid-template-columns: 80px 80px 1fr 100px;
+    gap: 1rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px dashed var(--amber-dim);
+    text-decoration: none;
+    color: var(--amber);
+    transition: all 0.15s;
+    align-items: baseline;
+  }
+  .demo-row:last-child { border-bottom: none; }
+  .demo-row:hover { color: var(--green); text-shadow: 0 0 4px rgba(51, 255, 51, 0.6); padding-left: 0.5rem; background: rgba(51, 255, 51, 0.05); }
+  .demo-row:hover .demo-name::before { content: '> '; }
+  .demo-name { font-weight: 600; }
+  .demo-size { color: var(--dim); font-size: 0.8rem; }
+  .demo-desc { color: var(--white); font-size: 0.82rem; opacity: 0.85; }
+  .demo-file { color: var(--green-dim); font-size: 0.75rem; }
+
+  /* Architecture - ASCII block diagram */
+  .arch-block {
+    border: 1px solid var(--amber-dim);
+    padding: 1.5rem;
+    color: var(--white);
+  }
+  .arch-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem 3rem; }
+  .arch-item::before { content: '├── '; color: var(--amber-dim); }
+  .arch-item:nth-last-child(-n+2)::before { content: '└── '; }
+  .arch-item { font-size: 0.85rem; }
+  .arch-key { color: var(--green); text-shadow: 0 0 3px rgba(51, 255, 51, 0.4); }
+  .arch-val { color: var(--white); }
+
+  /* Footer */
+  footer { padding: 3rem 0 4rem; font-size: 0.82rem; }
+  .prompt { color: var(--green); }
+  .prompt .dim { color: var(--dim); }
+  footer a { color: var(--green); text-decoration: underline; text-underline-offset: 3px; text-shadow: 0 0 4px rgba(51, 255, 51, 0.4); }
+  footer a:hover { color: var(--amber); text-shadow: 0 0 4px rgba(255, 176, 0, 0.6); }
+
+  .back { display: inline-block; color: var(--amber-dim); text-decoration: none; font-size: 0.8rem; margin-bottom: 1rem; }
+  .back:hover { color: var(--green); }
+
+  @media (max-width: 680px) {
+    .demo-row, .demos-header { grid-template-columns: 1fr; gap: 0.3rem; }
+    .arch-grid { grid-template-columns: 1fr; }
+    pre.ascii { font-size: 0.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bootbar">
+  <span>paint.ml · <span class="green">● ONLINE</span></span>
+  <span>TTY/0 · 80x24 · UTF-8</span>
+</div>
+
+<main class="container">
+
+  <a href="index.html" class="back">← cd ..</a>
+
+  <pre class="ascii">
+╔═══════════════════════════════════════════════════════╗
+║   ____   _    ___ _   _ _____   __  __ _              ║
+║  |  _ \ / \  |_ _| \ | |_   _| |  \/  | |             ║
+║  | |_) / _ \  | ||  \| | | |   | |\/| | |             ║
+║  |  __/ ___ \ | || |\  | | |  _| |  | | |___          ║
+║  |_| /_/   \_\___|_| \_| |_| (_)_|  |_|_____|         ║
+║                                                       ║
+╚═══════════════════════════════════════════════════════╝</pre>
+
+  <section class="hero">
+    <div class="hero-prompt">thomasou@paint:~$ ./paint --version</div>
+    <div class="hero-out"><span class="version">paint.ml v1.0.0</span> <span class="dim">(4.13.1+js_of_ocaml)</span></div>
+    <div class="hero-prompt" style="margin-top:0.75rem;">thomasou@paint:~$ cat README.md</div>
+    <div class="hero-out">
+      A functional GUI library and interactive paint application,
+      written entirely in OCaml. Custom widget system, immutable
+      graphics context, hand-rolled event loop. Compiled to JavaScript
+      via js_of_ocaml — runs anywhere there's a browser.<span class="cursor"></span>
+    </div>
+
+    <div class="tags">
+      <span class="tag">[ocaml 4.13]</span>
+      <span class="tag">[js_of_ocaml]</span>
+      <span class="tag">[canvas]</span>
+      <span class="tag">[1.5k LOC]</span>
+    </div>
+  </section>
+
+  <div class="divider">────[ DEMOS ]──────────────────────────────────────────</div>
+
+  <div class="demos">
+    <div class="demos-header">
+      <span>SIZE</span>
+      <span>FILE</span>
+      <span>DESCRIPTION</span>
+      <span>LAUNCH</span>
+    </div>
+    <a class="demo-row" href="paint.html">
+      <span class="demo-size">16.2K</span>
+      <span class="demo-file">paint.ml</span>
+      <span class="demo-desc">Full drawing app: tools, colors, undo/redo</span>
+      <span class="demo-name">paint →</span>
+    </a>
+    <a class="demo-row" href="gdemo.html">
+      <span class="demo-size">1.5K</span>
+      <span class="demo-file">gdemo.ml</span>
+      <span class="demo-desc">Graphics primitives showcase</span>
+      <span class="demo-name">gdemo →</span>
+    </a>
+    <a class="demo-row" href="lightbulb.html">
+      <span class="demo-size">1.4K</span>
+      <span class="demo-file">lightbulb.ml</span>
+      <span class="demo-desc">Widget state toggle example</span>
+      <span class="demo-name">lightbulb →</span>
+    </a>
+    <a class="demo-row" href="pairdemo.html">
+      <span class="demo-size">0.5K</span>
+      <span class="demo-file">pairdemo.ml</span>
+      <span class="demo-desc">Widget composition via pairing</span>
+      <span class="demo-name">pairdemo →</span>
+    </a>
+  </div>
+
+  <div class="divider">────[ ARCHITECTURE ]───────────────────────────────────</div>
+
+  <div class="arch-block">
+    <div class="arch-grid">
+      <div class="arch-item"><span class="arch-key">widgets</span> :: <span class="arch-val">Hierarchical, event-propagating</span></div>
+      <div class="arch-item"><span class="arch-key">state</span> :: <span class="arch-val">Immutable graphics context</span></div>
+      <div class="arch-item"><span class="arch-key">history</span> :: <span class="arch-val">Deque-backed undo/redo</span></div>
+      <div class="arch-item"><span class="arch-key">runtime</span> :: <span class="arch-val">Custom event loop</span></div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="prompt">thomasou@paint:~$ <span class="dim"># built for CIS 1200 @ Penn</span></div>
+    <div class="prompt">thomasou@paint:~$ exit</div>
+    <div style="margin-top:1.5rem;">
+      <a href="https://github.com/Smokeybear10/Paint">github.com/Smokeybear10/Paint</a>
+    </div>
+  </footer>
+
+</main>
+
+</body>
+</html>

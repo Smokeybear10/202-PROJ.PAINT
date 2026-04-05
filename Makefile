@@ -2,7 +2,7 @@
 
 SUBMIT  := gctx.ml gctx.mli widget.ml widget.mli paint.ml 
 
-OCB	:= ocamlbuild -r -tag debug -use-ocamlfind -pkg unix -pkg graphics -pkg js_of_ocaml -pkg js_of_ocaml-lwt -pkg js_of_ocaml-lwt.graphics -pkg js_of_ocaml-ppx
+OCB	:= ocamlbuild -r -tag debug -use-ocamlfind -lflag -no-check-prims -pkg unix -pkg js_of_ocaml -pkg js_of_ocaml-lwt -pkg js_of_ocaml-ppx
 
 DEPENDS := \
 	assert.ml \

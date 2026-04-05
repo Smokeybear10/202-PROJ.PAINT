@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PAINT — Variant D: Apple Glass</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #05050a;
+    --bg-card: rgba(255, 255, 255, 0.04);
+    --bg-card-hover: rgba(255, 255, 255, 0.07);
+    --border: rgba(255, 255, 255, 0.1);
+    --border-hover: rgba(255, 255, 255, 0.2);
+    --text: #f5f5f7;
+    --text-dim: #a1a1aa;
+    --text-muted: #71717a;
+    --indigo: #6366f1;
+    --cyan: #22d3ee;
+    --violet: #a855f7;
+    --emerald: #34d399;
+    --orange: #fb923c;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; overflow-x: hidden; }
+
+  /* Ambient orbs */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% 10%, rgba(99, 102, 241, 0.25) 0%, transparent 60%),
+      radial-gradient(ellipse 800px 600px at 85% 30%, rgba(168, 85, 247, 0.2) 0%, transparent 55%),
+      radial-gradient(ellipse 700px 500px at 50% 80%, rgba(34, 211, 238, 0.15) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent 0, transparent 2px, rgba(255, 255, 255, 0.008) 2px, rgba(255, 255, 255, 0.008) 3px);
+    pointer-events: none;
+    z-index: 1;
+  }
+  main, nav, footer { position: relative; z-index: 2; }
+
+  .container { max-width: 1180px; margin: 0 auto; padding: 0 2rem; }
+
+  /* Nav */
+  nav { padding: 1.75rem 0; }
+  nav .container { display: flex; justify-content: space-between; align-items: center; }
+  .brand { display: flex; align-items: center; gap: 0.65rem; font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; }
+  .brand-mark {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--indigo), var(--violet));
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    position: relative;
+  }
+  .brand-mark::after { content: ''; position: absolute; inset: 6px; border-radius: 4px; background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.3)); opacity: 0.9; }
+  .nav-pill {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.35rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .nav-pill a { font-size: 0.82rem; color: var(--text-dim); text-decoration: none; padding: 0.45rem 1rem; border-radius: 100px; font-weight: 500; transition: all 0.2s; }
+  .nav-pill a:hover { color: var(--text); background: rgba(255, 255, 255, 0.08); }
+
+  /* Hero */
+  .hero { padding: 5rem 0 3rem; text-align: center; }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    font-weight: 500;
+    margin-bottom: 2rem;
+  }
+  .eyebrow-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--emerald); box-shadow: 0 0 8px var(--emerald); }
+
+  h1 {
+    font-size: clamp(3rem, 7.5vw, 5.5rem);
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    line-height: 1.02;
+    margin: 0 0 1.5rem;
+    background: linear-gradient(180deg, #ffffff 0%, #a1a1aa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-sub { font-size: 1.25rem; color: var(--text-dim); max-width: 580px; margin: 0 auto 3rem; line-height: 1.5; font-weight: 300; }
+
+  /* Floating canvas preview */
+  .canvas-float {
+    max-width: 820px;
+    margin: 0 auto;
+    perspective: 1500px;
+  }
+  .canvas-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 1rem;
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    box-shadow:
+      0 50px 100px -30px rgba(99, 102, 241, 0.4),
+      0 30px 60px -20px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transform: rotateX(6deg) rotateY(-2deg);
+    transform-style: preserve-3d;
+    transition: transform 0.4s ease;
+  }
+  .canvas-card:hover { transform: rotateX(3deg) rotateY(0) translateY(-8px); }
+  .canvas-chrome { display: flex; gap: 0.4rem; padding: 0.25rem 0 0.75rem; }
+  .canvas-chrome span { width: 10px; height: 10px; border-radius: 50%; background: rgba(255, 255, 255, 0.2); }
+  .canvas-chrome span:first-child { background: #ff5f57; }
+  .canvas-chrome span:nth-child(2) { background: #febc2e; }
+  .canvas-chrome span:nth-child(3) { background: #28c840; }
+  .canvas-inner {
+    aspect-ratio: 16/9;
+    background: linear-gradient(135deg, #fafafa 0%, #f4f4f5 100%);
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+  .canvas-inner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(251, 146, 60, 0.4), transparent 8%),
+      radial-gradient(circle at 60% 50%, rgba(99, 102, 241, 0.4), transparent 10%),
+      radial-gradient(circle at 80% 70%, rgba(168, 85, 247, 0.3), transparent 8%);
+  }
+  .canvas-inner::after {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(135deg, transparent 40%, rgba(34, 211, 238, 0.3) 40%, rgba(34, 211, 238, 0.3) 41%, transparent 41%),
+      linear-gradient(45deg, transparent 60%, rgba(251, 146, 60, 0.5) 60%, rgba(251, 146, 60, 0.5) 62%, transparent 62%);
+  }
+
+  /* Chips */
+  .chips { display: flex; justify-content: center; gap: 0.6rem; flex-wrap: wrap; margin-top: 3rem; }
+  .chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    padding: 0.4rem 0.9rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    color: var(--text-dim);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    font-weight: 500;
+  }
+
+  /* Sections */
+  section.block { padding: 6rem 0 2rem; }
+  .section-label { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 1rem; font-weight: 500; }
+  h2 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 600; letter-spacing: -0.025em; margin: 0 0 1rem; line-height: 1.1; background: linear-gradient(180deg, #ffffff 0%, #a1a1aa 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .section-intro { font-size: 1.1rem; color: var(--text-dim); max-width: 620px; line-height: 1.55; margin: 0 0 3rem; }
+
+  /* Demos */
+  .demos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
+  .demo {
+    position: relative;
+    padding: 1.75rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    text-decoration: none;
+    color: inherit;
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    transition: all 0.3s ease;
+    overflow: hidden;
+  }
+  .demo::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--glow), transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  .demo:hover { border-color: var(--border-hover); transform: translateY(-4px); background: var(--bg-card-hover); box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.5), 0 0 40px -10px var(--glow); }
+  .demo:hover::before { opacity: 0.08; }
+  .demo:nth-child(1) { --glow: rgba(251, 146, 60, 0.5); }
+  .demo:nth-child(2) { --glow: rgba(34, 211, 238, 0.5); }
+  .demo:nth-child(3) { --glow: rgba(168, 85, 247, 0.5); }
+  .demo:nth-child(4) { --glow: rgba(52, 211, 153, 0.5); }
+
+  .demo-icon-wrap { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; }
+  .demo-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 24px -8px var(--glow);
+    transition: all 0.3s;
+  }
+  .demo:hover .demo-icon { transform: scale(1.05); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 0 32px -4px var(--glow); }
+  .demo-icon svg { width: 22px; height: 22px; }
+  .demo-arrow { color: var(--text-muted); transition: all 0.25s; }
+  .demo:hover .demo-arrow { color: var(--text); transform: translate(4px, -4px); }
+  .demo h3 { font-size: 1.2rem; font-weight: 600; margin: 0 0 0.4rem; letter-spacing: -0.01em; }
+  .demo p { font-size: 0.92rem; color: var(--text-dim); margin: 0; line-height: 1.5; }
+  .demo-foot { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--text-muted); margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; }
+
+  /* Stats panel */
+  .stats-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2.5rem;
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; }
+  .stat { position: relative; padding-left: 1.25rem; }
+  .stat::before { content: ''; position: absolute; left: 0; top: 0.3rem; bottom: 0.3rem; width: 2px; background: linear-gradient(180deg, var(--indigo), var(--violet)); border-radius: 2px; box-shadow: 0 0 12px rgba(99, 102, 241, 0.5); }
+  .stat-num { font-size: 1.15rem; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 0.25rem; }
+  .stat-label { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.12em; font-weight: 500; }
+
+  /* Footer */
+  footer { padding: 5rem 0 3rem; }
+  footer .container { display: flex; justify-content: space-between; align-items: center; padding-top: 2rem; border-top: 1px solid var(--border); font-size: 0.85rem; color: var(--text-muted); flex-wrap: wrap; gap: 1rem; }
+  footer a { color: var(--text-dim); text-decoration: none; margin-left: 1.5rem; }
+  footer a:hover { color: var(--text); }
+
+  @media (max-width: 780px) {
+    .demos { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .canvas-card { transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <div class="brand"><span class="brand-mark"></span>paint.ml</div>
+    <div class="nav-pill">
+      <a href="#demos">Demos</a>
+      <a href="#arch">Inside</a>
+      <a href="index.html">Home</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+  <section class="hero container">
+    <div class="eyebrow"><span class="eyebrow-dot"></span>Running live in your browser</div>
+    <h1>Paint, reimagined<br>in OCaml.</h1>
+    <p class="hero-sub">A functional GUI library and interactive paint application, compiled to JavaScript with zero framework overhead. Runs on pure canvas, powered by pattern matching.</p>
+
+    <div class="canvas-float">
+      <div class="canvas-card">
+        <div class="canvas-chrome"><span></span><span></span><span></span></div>
+        <div class="canvas-inner"></div>
+      </div>
+    </div>
+
+    <div class="chips">
+      <span class="chip">OCaml 4.13</span>
+      <span class="chip">js_of_ocaml</span>
+      <span class="chip">HTML5 Canvas</span>
+      <span class="chip">~1.5k LOC</span>
+      <span class="chip">zero deps</span>
+    </div>
+  </section>
+
+  <section id="demos" class="block container">
+    <span class="section-label">04 — DEMOS</span>
+    <h2>Four apps.<br>One runtime.</h2>
+    <p class="section-intro">Every demo draws from the same handwritten widget system. Click any card to open it live in your browser.</p>
+
+    <div class="demos">
+      <a class="demo" href="paint.html">
+        <div class="demo-icon-wrap">
+          <div class="demo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><circle cx="11" cy="11" r="2"/></svg></div>
+          <svg class="demo-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </div>
+        <h3>Paint</h3>
+        <p>Full drawing app with line, point, and thick-line tools, color picker, and undo/redo.</p>
+        <div class="demo-foot"><span>paint.ml</span><span>16.2 KB</span></div>
+      </a>
+
+      <a class="demo" href="gdemo.html">
+        <div class="demo-icon-wrap">
+          <div class="demo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><rect x="3" y="3" width="8" height="8"/></svg></div>
+          <svg class="demo-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </div>
+        <h3>Graphics Demo</h3>
+        <p>Primitives showcase &mdash; lines, rectangles, ellipses rendered through the graphics context.</p>
+        <div class="demo-foot"><span>gdemo.ml</span><span>1.5 KB</span></div>
+      </a>
+
+      <a class="demo" href="lightbulb.html">
+        <div class="demo-icon-wrap">
+          <div class="demo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></div>
+          <svg class="demo-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </div>
+        <h3>Lightbulb</h3>
+        <p>Minimal widget state toggle. A single checkbox flips the bulb on and off.</p>
+        <div class="demo-foot"><span>lightbulb.ml</span><span>1.4 KB</span></div>
+      </a>
+
+      <a class="demo" href="pairdemo.html">
+        <div class="demo-icon-wrap">
+          <div class="demo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="18" rx="1"/><rect x="13" y="3" width="8" height="18" rx="1"/></svg></div>
+          <svg class="demo-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </div>
+        <h3>Pair Demo</h3>
+        <p>Widget composition via pairing &mdash; stacked and side-by-side layouts.</p>
+        <div class="demo-foot"><span>pairdemo.ml</span><span>0.5 KB</span></div>
+      </a>
+    </div>
+  </section>
+
+  <section id="arch" class="block container">
+    <span class="section-label">INSIDE</span>
+    <h2>Hand-rolled framework.</h2>
+    <p class="section-intro">No React, no DOM diffing, no virtual widgets. Just OCaml compiled to JavaScript, painting directly to a canvas.</p>
+
+    <div class="stats-panel">
+      <div class="stats-grid">
+        <div class="stat">
+          <div class="stat-num">Hierarchical</div>
+          <div class="stat-label">Widget System</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">Immutable</div>
+          <div class="stat-label">Graphics Context</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">Deque-backed</div>
+          <div class="stat-label">Undo / Redo</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">Hand-rolled</div>
+          <div class="stat-label">Event Loop</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <span>Built by Thomas Ou · CIS 1200 @ Penn</span>
+    <div>
+      <a href="https://github.com/Smokeybear10/Paint" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://ocaml.org" target="_blank" rel="noopener">OCaml</a>
+      <a href="https://ocsigen.org/js_of_ocaml" target="_blank" rel="noopener">js_of_ocaml</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

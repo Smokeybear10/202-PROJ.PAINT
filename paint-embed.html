@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>paint.ml — live</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f5f0e6;
+    --paper-dark: #ebe4d4;
+    --paper-warm: #f2ede0;
+    --ink: #1a1a1a;
+    --ink-dim: #4a4a4a;
+    --ink-muted: #7a7570;
+    --orange: #ec6813;
+    --teal: #2d6e5e;
+    --red: #c0392b;
+    --shadow: rgba(26, 26, 26, 0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    height: 100%;
+    user-select: none;
+  }
+
+  .app {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    height: 100vh;
+    gap: 0;
+  }
+
+  /* Toolbar sidebar */
+  .toolbar {
+    background: var(--paper-warm);
+    border-right: 1.5px solid var(--ink);
+    padding: 0.9rem 0.85rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+
+  .panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+  .panel-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-muted);
+    font-weight: 600;
+    padding-bottom: 0.1rem;
+  }
+
+  /* Tool grid */
+  .tools {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.35rem;
+  }
+  .tool-btn {
+    aspect-ratio: 1;
+    border: 1.5px solid var(--ink);
+    background: var(--paper);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.12s ease;
+    position: relative;
+    color: var(--ink);
+    box-shadow: 1.5px 1.5px 0 var(--ink);
+  }
+  .tool-btn:hover { background: var(--paper-dark); transform: translate(-0.5px, -0.5px); box-shadow: 2px 2px 0 var(--ink); }
+  .tool-btn:active { transform: translate(0.5px, 0.5px); box-shadow: 0.5px 0.5px 0 var(--ink); }
+  .tool-btn.active {
+    background: var(--ink);
+    color: var(--paper);
+    box-shadow: 1.5px 1.5px 0 var(--orange);
+  }
+  .tool-btn svg { width: 18px; height: 18px; stroke-width: 2; }
+  .tool-btn[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: -26px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    white-space: nowrap;
+    z-index: 20;
+    pointer-events: none;
+  }
+
+  /* Color palette */
+  .colors {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.3rem;
+  }
+  .color-swatch {
+    aspect-ratio: 1;
+    border: 1.5px solid var(--ink);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.12s ease;
+    position: relative;
+    box-shadow: 1px 1px 0 var(--ink);
+  }
+  .color-swatch:hover { transform: translate(-0.5px, -0.5px); box-shadow: 1.5px 1.5px 0 var(--ink); }
+  .color-swatch.active::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border: 1.5px dashed var(--ink);
+    border-radius: 5px;
+    pointer-events: none;
+  }
+
+  .current-color {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.55rem;
+    background: var(--paper);
+    border: 1.5px solid var(--ink);
+    border-radius: 4px;
+    box-shadow: 1.5px 1.5px 0 var(--ink);
+  }
+  .current-color-preview {
+    width: 22px;
+    height: 22px;
+    border: 1.5px solid var(--ink);
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .current-color-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--ink);
+    text-transform: uppercase;
+    flex: 1;
+  }
+  .custom-picker {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+  }
+  .picker-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--ink-muted);
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .picker-btn:hover { color: var(--orange); }
+
+  /* Size slider */
+  .size-row {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+  .size-preview {
+    width: 34px;
+    height: 34px;
+    border: 1.5px solid var(--ink);
+    border-radius: 4px;
+    background: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 1.5px 1.5px 0 var(--ink);
+  }
+  .size-dot { background: var(--ink); border-radius: 50%; }
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    flex: 1;
+    height: 4px;
+    background: var(--paper-dark);
+    border: 1.5px solid var(--ink);
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--orange);
+    border: 1.5px solid var(--ink);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 1px 1px 0 var(--ink);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: var(--orange);
+    border: 1.5px solid var(--ink);
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .size-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--ink);
+    min-width: 28px;
+    text-align: right;
+    font-weight: 500;
+  }
+
+  /* Action buttons */
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.35rem;
+  }
+  .action-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    padding: 0.45rem 0.4rem;
+    border: 1.5px solid var(--ink);
+    background: var(--paper);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.12s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink);
+    box-shadow: 1.5px 1.5px 0 var(--ink);
+  }
+  .action-btn:hover:not(:disabled) { background: var(--paper-dark); transform: translate(-0.5px, -0.5px); box-shadow: 2px 2px 0 var(--ink); }
+  .action-btn:active:not(:disabled) { transform: translate(0.5px, 0.5px); box-shadow: 0.5px 0.5px 0 var(--ink); }
+  .action-btn:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: 1px 1px 0 var(--ink); }
+  .action-btn.primary { background: var(--orange); color: var(--paper); border-color: var(--ink); }
+  .action-btn.primary:hover:not(:disabled) { background: #d75a0a; }
+  .action-btn.danger:hover:not(:disabled) { background: var(--red); color: var(--paper); border-color: var(--ink); }
+  .action-btn svg { width: 12px; height: 12px; stroke-width: 2.5; }
+
+  /* Canvas area */
+  .canvas-wrap {
+    background:
+      repeating-linear-gradient(45deg, rgba(26,26,26,0.02) 0 1px, transparent 1px 12px),
+      var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .canvas-frame {
+    background: #ffffff;
+    border: 1.5px solid var(--ink);
+    border-radius: 3px;
+    box-shadow: 6px 6px 0 var(--ink);
+    position: relative;
+  }
+  #canvas {
+    display: block;
+    cursor: crosshair;
+    background: #ffffff;
+    border-radius: 2px;
+    touch-action: none;
+  }
+  .status-bar {
+    position: absolute;
+    bottom: 0.5rem;
+    left: 0.5rem;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    padding: 0.25rem 0.55rem;
+    border-radius: 3px;
+    letter-spacing: 0.05em;
+    display: flex;
+    gap: 0.85rem;
+    opacity: 0.88;
+    pointer-events: none;
+  }
+  .status-bar span { white-space: nowrap; }
+  .status-bar .dot { color: var(--orange); }
+
+  .hint {
+    position: absolute;
+    bottom: 0.5rem;
+    right: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--ink-muted);
+    letter-spacing: 0.04em;
+    pointer-events: none;
+    background: var(--paper);
+    padding: 0.2rem 0.5rem;
+    border: 1px solid rgba(26,26,26,0.2);
+    border-radius: 2px;
+  }
+  .hint kbd {
+    font-family: inherit;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0.05em 0.3em;
+    border-radius: 2px;
+    font-weight: 600;
+  }
+
+  @media (max-width: 720px) {
+    .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+    .toolbar { border-right: none; border-bottom: 1.5px solid var(--ink); flex-direction: row; overflow-x: auto; padding: 0.6rem; gap: 0.6rem; }
+    .panel { flex-shrink: 0; }
+    .tools { grid-template-columns: repeat(8, 1fr); }
+    .colors { grid-template-columns: repeat(12, 1fr); }
+    .hint { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="toolbar">
+    <div class="panel">
+      <div class="panel-label">Tools</div>
+      <div class="tools" id="tools">
+        <button class="tool-btn active" data-tool="brush" data-tooltip="Brush (B)" aria-label="Brush">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9.06 11.9l8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z"/></svg>
+        </button>
+        <button class="tool-btn" data-tool="pencil" data-tooltip="Pencil (P)" aria-label="Pencil">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+        </button>
+        <button class="tool-btn" data-tool="line" data-tooltip="Line (L)" aria-label="Line">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><line x1="5" y1="19" x2="19" y2="5"/><circle cx="5" cy="19" r="1.5" fill="currentColor"/><circle cx="19" cy="5" r="1.5" fill="currentColor"/></svg>
+        </button>
+        <button class="tool-btn" data-tool="rect" data-tooltip="Rectangle (R)" aria-label="Rectangle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="6" width="16" height="12" rx="1"/></svg>
+        </button>
+        <button class="tool-btn" data-tool="ellipse" data-tooltip="Ellipse (E)" aria-label="Ellipse">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><ellipse cx="12" cy="12" rx="9" ry="6"/></svg>
+        </button>
+        <button class="tool-btn" data-tool="fill" data-tooltip="Fill (F)" aria-label="Fill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 11V5a1 1 0 0 0-1-1H7a1 1 0 0 0-.7.29L2.29 8.29a1 1 0 0 0 0 1.42L6.3 13.7a1 1 0 0 0 1.42 0L19 2"/><path d="M5 12v7a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-7"/></svg>
+        </button>
+        <button class="tool-btn" data-tool="eraser" data-tooltip="Eraser (X)" aria-label="Eraser">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L3 16a2 2 0 0 1 0-3l8-8a2 2 0 0 1 3 0l6 6a2 2 0 0 1 0 3l-5 6"/><line x1="18" y1="12" x2="12" y2="6"/></svg>
+        </button>
+        <button class="tool-btn" data-tool="eyedropper" data-tooltip="Pick Color (I)" aria-label="Eyedropper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M11 19H4v-7l10-10 7 7-10 10z"/><path d="m2 22 3-3"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">Size <span class="size-value" id="sizeValue">4</span></div>
+      <div class="size-row">
+        <div class="size-preview"><div class="size-dot" id="sizeDot" style="width:4px;height:4px"></div></div>
+        <input type="range" id="sizeSlider" min="1" max="50" value="4">
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">Palette</div>
+      <div class="colors" id="colors"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label" style="display:flex;justify-content:space-between;align-items:baseline">
+        <span>Color</span>
+        <button class="picker-btn" id="pickerBtn">+ custom</button>
+      </div>
+      <div class="current-color">
+        <div class="current-color-preview" id="currentColorPreview"></div>
+        <div class="current-color-code" id="currentColorCode">#1A1A1A</div>
+      </div>
+      <input type="color" class="custom-picker" id="customPicker" value="#1a1a1a">
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">Actions</div>
+      <div class="actions">
+        <button class="action-btn" id="undoBtn" title="Undo (U)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+          undo
+        </button>
+        <button class="action-btn" id="redoBtn" title="Redo (R)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
+          redo
+        </button>
+        <button class="action-btn danger" id="clearBtn" title="Clear (C)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          clear
+        </button>
+        <button class="action-btn primary" id="saveBtn" title="Save PNG (S)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          save
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="canvas-wrap">
+    <div class="canvas-frame">
+      <canvas id="canvas" width="800" height="560"></canvas>
+    </div>
+    <div class="status-bar">
+      <span id="statusTool">brush</span>
+      <span class="dot">·</span>
+      <span id="statusCoords">0, 0</span>
+      <span class="dot">·</span>
+      <span id="statusSize">4px</span>
+    </div>
+    <div class="hint"><kbd>B</kbd> brush · <kbd>U</kbd> undo · <kbd>S</kbd> save · hold <kbd>⇧</kbd> to constrain</div>
+  </main>
+</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  const W = canvas.width, H = canvas.height;
+
+  // White background
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+
+  // State
+  const state = {
+    tool: 'brush',
+    color: '#1a1a1a',
+    size: 4,
+    drawing: false,
+    start: null,
+    last: null,
+    snapshot: null,
+    history: [],
+    future: [],
+    maxHistory: 30,
+  };
+
+  // Color palette - curated 18 colors matching paper theme
+  const palette = [
+    '#1a1a1a', '#4a4a4a', '#7a7570', '#ebe4d4', '#ffffff', '#f5f0e6',
+    '#ec6813', '#d75a0a', '#2d6e5e', '#4a9b87', '#c0392b', '#e74c3c',
+    '#f39c12', '#f1c40f', '#27ae60', '#3498db', '#9b59b6', '#e91e63',
+  ];
+
+  // Build palette
+  const colorsEl = document.getElementById('colors');
+  palette.forEach((color, i) => {
+    const swatch = document.createElement('button');
+    swatch.className = 'color-swatch' + (i === 0 ? ' active' : '');
+    swatch.style.background = color;
+    swatch.dataset.color = color;
+    swatch.title = color;
+    swatch.addEventListener('click', () => setColor(color, swatch));
+    colorsEl.appendChild(swatch);
+  });
+
+  // UI refs
+  const currentColorPreview = document.getElementById('currentColorPreview');
+  const currentColorCode = document.getElementById('currentColorCode');
+  const sizeSlider = document.getElementById('sizeSlider');
+  const sizeValue = document.getElementById('sizeValue');
+  const sizeDot = document.getElementById('sizeDot');
+  const statusTool = document.getElementById('statusTool');
+  const statusCoords = document.getElementById('statusCoords');
+  const statusSize = document.getElementById('statusSize');
+  const undoBtn = document.getElementById('undoBtn');
+  const redoBtn = document.getElementById('redoBtn');
+  const customPicker = document.getElementById('customPicker');
+
+  function setColor(color, activeEl) {
+    state.color = color;
+    currentColorPreview.style.background = color;
+    currentColorCode.textContent = color.toUpperCase();
+    document.querySelectorAll('.color-swatch').forEach(s => s.classList.toggle('active', s === activeEl));
+  }
+  setColor(palette[0], colorsEl.firstChild);
+
+  // Size
+  sizeSlider.addEventListener('input', e => {
+    const v = +e.target.value;
+    state.size = v;
+    sizeValue.textContent = v;
+    statusSize.textContent = v + 'px';
+    const d = Math.min(v, 28);
+    sizeDot.style.width = d + 'px';
+    sizeDot.style.height = d + 'px';
+    sizeDot.style.background = state.tool === 'eraser' ? '#ffffff' : state.color;
+    sizeDot.style.border = state.tool === 'eraser' ? '1px solid #1a1a1a' : 'none';
+  });
+
+  // Tools
+  document.querySelectorAll('.tool-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.tool = btn.dataset.tool;
+      statusTool.textContent = state.tool;
+      canvas.style.cursor = state.tool === 'eyedropper' ? 'copy' : (state.tool === 'fill' ? 'pointer' : 'crosshair');
+      sizeSlider.dispatchEvent(new Event('input'));
+    });
+  });
+
+  // Custom color picker
+  document.getElementById('pickerBtn').addEventListener('click', () => customPicker.click());
+  customPicker.addEventListener('input', e => {
+    setColor(e.target.value, null);
+  });
+
+  // History
+  function snapshot() {
+    if (state.history.length >= state.maxHistory) state.history.shift();
+    state.history.push(ctx.getImageData(0, 0, W, H));
+    state.future = [];
+    updateHistoryUI();
+  }
+  function updateHistoryUI() {
+    undoBtn.disabled = state.history.length === 0;
+    redoBtn.disabled = state.future.length === 0;
+  }
+  function undo() {
+    if (!state.history.length) return;
+    state.future.push(ctx.getImageData(0, 0, W, H));
+    ctx.putImageData(state.history.pop(), 0, 0);
+    updateHistoryUI();
+  }
+  function redo() {
+    if (!state.future.length) return;
+    state.history.push(ctx.getImageData(0, 0, W, H));
+    ctx.putImageData(state.future.pop(), 0, 0);
+    updateHistoryUI();
+  }
+  undoBtn.addEventListener('click', undo);
+  redoBtn.addEventListener('click', redo);
+  updateHistoryUI();
+
+  // Clear
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    snapshot();
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, W, H);
+  });
+
+  // Save
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    const link = document.createElement('a');
+    link.download = 'paint-' + Date.now() + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+
+  // Canvas pointer position
+  function pos(e) {
+    const r = canvas.getBoundingClientRect();
+    const sx = canvas.width / r.width;
+    const sy = canvas.height / r.height;
+    return {
+      x: (e.clientX - r.left) * sx,
+      y: (e.clientY - r.top) * sy,
+    };
+  }
+
+  // Constrain for shift key (45deg angles / square / circle)
+  function constrain(p1, p2, shiftKey) {
+    if (!shiftKey) return p2;
+    const dx = p2.x - p1.x, dy = p2.y - p1.y;
+    const adx = Math.abs(dx), ady = Math.abs(dy);
+    if (adx > ady * 2) return { x: p2.x, y: p1.y };
+    if (ady > adx * 2) return { x: p1.x, y: p2.y };
+    const d = Math.max(adx, ady);
+    return { x: p1.x + Math.sign(dx) * d, y: p1.y + Math.sign(dy) * d };
+  }
+
+  // Drawing helpers
+  function drawStroke(from, to, size, color) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = size;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(to.x, to.y);
+    ctx.stroke();
+  }
+
+  function drawLine(from, to, size, color) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = size;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(to.x, to.y);
+    ctx.stroke();
+  }
+
+  function drawRect(from, to, size, color) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = size;
+    ctx.lineJoin = 'miter';
+    const x = Math.min(from.x, to.x), y = Math.min(from.y, to.y);
+    const w = Math.abs(to.x - from.x), h = Math.abs(to.y - from.y);
+    ctx.strokeRect(x, y, w, h);
+  }
+
+  function drawEllipse(from, to, size, color) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = size;
+    const cx = (from.x + to.x) / 2, cy = (from.y + to.y) / 2;
+    const rx = Math.abs(to.x - from.x) / 2, ry = Math.abs(to.y - from.y) / 2;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // Flood fill
+  function hexToRgba(hex) {
+    const m = hex.replace('#', '');
+    const bigint = parseInt(m, 16);
+    return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255, 255];
+  }
+  function floodFill(startX, startY, color) {
+    const img = ctx.getImageData(0, 0, W, H);
+    const data = img.data;
+    const target = [data[(startY*W+startX)*4], data[(startY*W+startX)*4+1], data[(startY*W+startX)*4+2], data[(startY*W+startX)*4+3]];
+    const fill = hexToRgba(color);
+    if (target[0] === fill[0] && target[1] === fill[1] && target[2] === fill[2] && target[3] === fill[3]) return;
+    const stack = [[startX, startY]];
+    const tolerance = 8;
+    const matches = (i) => {
+      return Math.abs(data[i]-target[0]) <= tolerance &&
+             Math.abs(data[i+1]-target[1]) <= tolerance &&
+             Math.abs(data[i+2]-target[2]) <= tolerance &&
+             Math.abs(data[i+3]-target[3]) <= tolerance;
+    };
+    while (stack.length) {
+      const [x, y] = stack.pop();
+      if (x < 0 || y < 0 || x >= W || y >= H) continue;
+      const i = (y * W + x) * 4;
+      if (!matches(i)) continue;
+      data[i] = fill[0]; data[i+1] = fill[1]; data[i+2] = fill[2]; data[i+3] = fill[3];
+      stack.push([x+1, y], [x-1, y], [x, y+1], [x, y-1]);
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+
+  // Eyedropper
+  function pickColor(x, y) {
+    const p = ctx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
+    const hex = '#' + [p[0], p[1], p[2]].map(c => c.toString(16).padStart(2, '0')).join('');
+    setColor(hex, null);
+  }
+
+  // Pointer events
+  canvas.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    canvas.setPointerCapture(e.pointerId);
+    const p = pos(e);
+
+    if (state.tool === 'eyedropper') {
+      pickColor(p.x, p.y);
+      return;
+    }
+    if (state.tool === 'fill') {
+      snapshot();
+      floodFill(Math.floor(p.x), Math.floor(p.y), state.color);
+      return;
+    }
+
+    snapshot();
+    state.drawing = true;
+    state.start = p;
+    state.last = p;
+
+    // For shape tools: save snapshot for preview rendering
+    if (['line', 'rect', 'ellipse'].includes(state.tool)) {
+      state.snapshot = ctx.getImageData(0, 0, W, H);
+    } else if (state.tool === 'brush' || state.tool === 'pencil') {
+      const color = state.color;
+      const size = state.tool === 'pencil' ? 1 : state.size;
+      drawStroke(p, p, size, color);
+    } else if (state.tool === 'eraser') {
+      drawStroke(p, p, state.size, '#ffffff');
+    }
+  });
+
+  canvas.addEventListener('pointermove', e => {
+    const p = pos(e);
+    statusCoords.textContent = Math.round(p.x) + ', ' + Math.round(p.y);
+
+    if (!state.drawing) return;
+
+    if (state.tool === 'brush' || state.tool === 'pencil') {
+      const size = state.tool === 'pencil' ? 1 : state.size;
+      drawStroke(state.last, p, size, state.color);
+      state.last = p;
+    } else if (state.tool === 'eraser') {
+      drawStroke(state.last, p, state.size, '#ffffff');
+      state.last = p;
+    } else if (['line', 'rect', 'ellipse'].includes(state.tool)) {
+      // Preview: restore snapshot, draw shape
+      ctx.putImageData(state.snapshot, 0, 0);
+      const end = constrain(state.start, p, e.shiftKey);
+      if (state.tool === 'line') drawLine(state.start, end, state.size, state.color);
+      else if (state.tool === 'rect') drawRect(state.start, end, state.size, state.color);
+      else if (state.tool === 'ellipse') drawEllipse(state.start, end, state.size, state.color);
+    }
+  });
+
+  canvas.addEventListener('pointerup', e => {
+    if (!state.drawing) return;
+    state.drawing = false;
+    state.snapshot = null;
+    state.start = null;
+    state.last = null;
+  });
+
+  canvas.addEventListener('pointerleave', () => {
+    statusCoords.textContent = '--, --';
+  });
+
+  // Keyboard shortcuts
+  const keyMap = { b:'brush', p:'pencil', l:'line', r:'rect', e:'ellipse', f:'fill', x:'eraser', i:'eyedropper' };
+  window.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT') return;
+    const k = e.key.toLowerCase();
+    if ((e.metaKey || e.ctrlKey) && k === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+    if ((e.metaKey || e.ctrlKey) && k === 'y') { e.preventDefault(); redo(); return; }
+    if ((e.metaKey || e.ctrlKey) && k === 's') { e.preventDefault(); document.getElementById('saveBtn').click(); return; }
+    if (k === 'u') { undo(); return; }
+    if (k === 'y') { redo(); return; }
+    if (k === 's') { document.getElementById('saveBtn').click(); return; }
+    if (k === 'c') { document.getElementById('clearBtn').click(); return; }
+    if (keyMap[k]) {
+      const btn = document.querySelector(`[data-tool="${keyMap[k]}"]`);
+      if (btn) btn.click();
+    }
+    // Bracket keys adjust size
+    if (k === '[') { sizeSlider.value = Math.max(1, +sizeSlider.value - 2); sizeSlider.dispatchEvent(new Event('input')); }
+    if (k === ']') { sizeSlider.value = Math.min(50, +sizeSlider.value + 2); sizeSlider.dispatchEvent(new Event('input')); }
+  });
+
+  // Resize canvas to container while keeping internal resolution
+  function fitCanvas() {
+    const wrap = canvas.parentElement.parentElement;
+    const padding = 48;
+    const maxW = wrap.clientWidth - padding;
+    const maxH = wrap.clientHeight - padding;
+    const aspect = W / H;
+    let w = maxW, h = maxW / aspect;
+    if (h > maxH) { h = maxH; w = maxH * aspect; }
+    canvas.style.width = Math.floor(w) + 'px';
+    canvas.style.height = Math.floor(h) + 'px';
+  }
+  fitCanvas();
+  window.addEventListener('resize', fitCanvas);
+})();
+</script>
+
+</body>
+</html>
