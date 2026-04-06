@@ -1,79 +1,64 @@
-# GUI Programming & Paint Application
+# PAINT.ML
 
-A functional GUI library and interactive paint application built in OCaml, featuring a custom widget system, event-driven architecture, and multiple drawing tools.
+OCaml GUI framework compiled to the browser via js_of_ocaml. Ships as an editorial landing page showcasing three interactive demos — paint, gradient lab, and tile maker.
 
-## Overview
+![Hero](landing-hero.gif)
 
-This project implements a complete GUI framework from scratch, including:
+![Demos](landing-demos-1.gif)
 
-- **Custom Widget System** - Modular, composable UI components
-- **Event-Driven Architecture** - Sophisticated event loop and handlers
-- **Paint Application** - Full-featured drawing program with multiple tools
-- **Graphics Context** - Abstraction layer for rendering operations
-- **Data Structures** - Efficient deque implementation for undo/redo functionality
+![Demos](landing-demos-2.gif)
+
+## Quick Start
+
+```bash
+make          # compile all .ml → .js
+npm run dev   # serve at localhost:2202
+```
+
+## What It Does
+
+A full widget system and event loop written in OCaml, targeting both native and browser via js_of_ocaml. The landing page (`index.html`) presents the demos as an art magazine spread with scroll-driven animations.
+
+**Featured demos:**
+- **paint.ml** — eight tools, 18-color palette, flood fill, eyedropper, undo/redo, PNG export
+- **gradient.ml** — inverse distance weighting color blending, drag-to-place nodes
+- **tile.ml** — pixel grid with symmetry modes, real-time tessellation preview
+
+**OCaml-only demos (not featured on landing):**
+- **lightbulb.ml** — minimal checkbox widget toggling a state
+- **gdemo.ml** — graphics primitives (lines, rects, ellipses)
+- **pairdemo.ml** — widget composition via pairing
+
+## Tech Stack
+
+| Layer | Tools |
+|---|---|
+| Language | OCaml |
+| Browser compilation | js_of_ocaml |
+| Frontend | Vanilla JS, HTML/CSS |
+| Fonts | Fraunces, EB Garamond, JetBrains Mono, Caveat |
 
 ## Project Structure
 
 ```
-.
-├── widget.ml/mli       # Core widget system and composition
-├── gctx.ml/mli         # Graphics context for drawing operations
-├── paint.ml/mli        # Main paint application
-├── eventloop.ml/mli    # Event handling and dispatching
-├── deque.ml/mli        # Double-ended queue data structure
-├── assert.ml/mli       # Testing utilities
-└── widgetTest.ml       # Widget system tests
+index.html              landing page
+style.css               editorial styles
+main.js                 scroll animations
+
+paint.html              demo wrapper
+paint-live.html         iframe content
+gradient.html
+gradient-live.html
+tile.html
+tile-live.html
+
+widget.ml/mli           core widget system
+gctx.ml/mli             graphics context
+paint.ml/mli            paint application
+eventloop.ml/mli        event loop
+deque.ml/mli            undo/redo queue
 ```
 
-## Demo Applications
+---
 
-- **paint.ml** - Interactive paint program with drawing tools
-- **lightbulb.ml** - Simple state toggle demonstration
-- **gdemo.ml** - Graphics primitives showcase
-- **pairdemo.ml** - Widget pairing example
-
-## Building & Running
-
-Build the project:
-```bash
-make
-```
-
-Run the paint application:
-```bash
-make paint
-```
-
-Run tests:
-```bash
-make test
-```
-
-## Features
-
-### Widget System
-- Hierarchical widget composition
-- Event propagation and handling
-- Layout management
-- State management
-
-### Paint Application
-- Multiple drawing tools (line, point, thick line)
-- Color picker
-- Undo/redo functionality
-- Interactive canvas
-
-## Technical Details
-
-Built using:
-- **OCaml** - Functional programming language
-- **Graphics Module** - Native OCaml graphics library
-- **Custom Event Loop** - Asynchronous event handling
-
-## Course Information
-
-Part of CIS 1200 at the University of Pennsylvania
-
-- [Homework Description](http://www.cis.upenn.edu/~cis1200/current/hw/hw05/)
-- [FAQ](https://www.seas.upenn.edu/~cis1200/current/hw/hw05/faq/)
-- [Codio Documentation](http://www.cis.upenn.edu/~cis1200/current/codio)
+Built by Thomas Ou
