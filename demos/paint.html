@@ -4,10 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Paint — paint.ml</title>
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="description" content="Interactive paint app written in OCaml, compiled to JavaScript via js_of_ocaml. Eight tools, 18-color palette, flood fill, undo/redo, and PNG export.">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,400&family=Inter:wght@400;500;600&family=Caveat:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,400&family=Inter:wght@400;500;600&family=Caveat:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,400&family=Inter:wght@400;500;600&family=Caveat:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap"></noscript>
 <style>
   :root {
     --paper: #f5f0e6;
@@ -111,11 +113,11 @@
 <body>
 
 <header class="masthead">
-  <a href="index.html" class="mast-title">PAINT<span class="dot">.</span>ML</a>
+  <a href="../index.html" class="mast-title">PAINT<span class="dot">.</span>ML</a>
 </header>
 
 <main>
-  <a href="index.html#demosWrap" class="back-btn">← all demos</a>
+  <a href="../index.html#demosWrap" class="back-btn">← all demos</a>
   <div class="demo-kicker">Nº 1 · the main event</div>
   <h1>Paint</h1>
   <p class="subtitle">Eight tools, 18-color palette, flood fill, eyedropper, undo/redo, PNG export. Hold <kbd>⇧</kbd> to constrain shapes. Hit <kbd>s</kbd> to save.</p>

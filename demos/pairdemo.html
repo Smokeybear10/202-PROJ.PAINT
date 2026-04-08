@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lightbulb — lightbulb.ml</title>
+<title>Pair Demo — pairdemo.ml</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,400&family=Inter:wght@400;500;600&family=Caveat:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,400&family=Inter:wght@400;500;600&family=Caveat:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,400&family=Inter:wght@400;500;600&family=Caveat:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap"></noscript>
 <style>
   :root {
     --paper: #f5f0e6;
@@ -39,9 +40,9 @@
   .demo-kicker { font-family: 'Caveat', cursive; font-size: 1.3rem; color: var(--orange); transform: rotate(-1.5deg); display: inline-block; margin-bottom: 0.5rem; }
   h1 { font-family: 'Fraunces', serif; font-size: clamp(2.5rem, 6vw, 3.75rem); font-weight: 700; letter-spacing: -0.02em; margin: 0 0 0.75rem; color: var(--ink); }
   .subtitle { color: var(--ink-dim); font-size: 1.05rem; margin: 0 0 2.5rem; line-height: 1.55; max-width: 520px; text-align: center; }
-  .canvas-frame { background: var(--paper); border: 2px solid var(--ink); border-radius: 4px; padding: 0; box-shadow: 8px 8px 0 var(--ink); transform: rotate(-0.4deg); position: relative; width: 100%; max-width: 560px; }
+  .canvas-frame { background: var(--paper); border: 2px solid var(--ink); border-radius: 4px; padding: 0; box-shadow: 8px 8px 0 var(--ink); transform: rotate(0.4deg); position: relative; width: 100%; max-width: 560px; }
   .canvas-frame iframe { display: block; width: 100%; height: 420px; border: none; background: var(--paper); border-radius: 2px; }
-  .canvas-frame::after { content: 'lightbulb.ml'; position: absolute; top: -0.8rem; right: 1rem; background: var(--orange); color: var(--paper); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; padding: 0.2rem 0.6rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; z-index: 2; }
+  .canvas-frame::after { content: 'pairdemo.ml'; position: absolute; top: -0.8rem; right: 1rem; background: var(--orange); color: var(--paper); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; padding: 0.2rem 0.6rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; z-index: 2; }
   canvas { display: block; background: #ffffff; border-radius: 2px; box-shadow: inset 0 0 0 1px rgba(26, 26, 26, 0.08); }
   footer { padding: 1.5rem 2rem; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--ink-muted); border-top: 1px solid rgba(26, 26, 26, 0.15); }
   @media (max-width: 680px) {
@@ -53,16 +54,16 @@
 <body>
 
 <header class="masthead">
-  <a href="index.html" class="mast-title">PAINT<span class="dot">.</span>ML</a>
-  <span class="mast-issue">lightbulb.ml · the minimal</span>
+  <a href="../index.html" class="mast-title">PAINT<span class="dot">.</span>ML</a>
+  <span class="mast-issue">pairdemo.ml · the composition</span>
 </header>
 
 <main>
-  <div class="demo-kicker">Nº 3 · the minimal</div>
-  <h1>Lightbulb</h1>
-  <p class="subtitle">A single checkbox widget that toggles a bulb state. The smallest possible example of widget event handling.</p>
+  <div class="demo-kicker">Nº 4 · the composition</div>
+  <h1>Pair Demo</h1>
+  <p class="subtitle">Widget composition via pairing. Stack two widgets side-by-side or top-to-bottom to build layouts from simple parts.</p>
   <div class="canvas-frame">
-    <iframe src="lightbulb-live.html" title="lightbulb.ml live demo" loading="eager"></iframe>
+    <iframe src="pairdemo-live.html" title="pairdemo.ml live demo" loading="eager"></iframe>
   </div>
 </main>
 

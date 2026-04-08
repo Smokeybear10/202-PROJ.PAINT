@@ -1,12 +1,14 @@
 # PAINT.ML
 
+**Live: [paintml.vercel.app](https://paintml.vercel.app)**
+
 OCaml GUI framework compiled to the browser via js_of_ocaml. Ships as an editorial landing page showcasing three interactive demos — paint, gradient lab, and tile maker.
 
-![Hero](landing-hero.gif)
+![Hero](assets/landing-hero.gif)
 
-![Demos](landing-demos-1.gif)
+![Demos](assets/landing-demos-1.gif)
 
-![Demos](landing-demos-2.gif)
+![Demos](assets/landing-demos-2.gif)
 
 ## Quick Start
 
@@ -44,19 +46,24 @@ A full widget system and event loop written in OCaml, targeting both native and 
 index.html              landing page
 style.css               editorial styles
 main.js                 scroll animations
+favicon.svg
 
-paint.html              demo wrapper
-paint-live.html         iframe content
-gradient.html
-gradient-live.html
-tile.html
-tile-live.html
+demos/                  demo wrapper + live pages
+  paint.html / paint-live.html
+  gradient.html / gradient-live.html
+  tile.html / tile-live.html
+  gdemo.html / gdemo-live.html
+  lightbulb.html / lightbulb-live.html
+  pairdemo.html / pairdemo-live.html
+
+assets/                 landing page GIFs
 
 widget.ml/mli           core widget system
 gctx.ml/mli             graphics context
 paint.ml/mli            paint application
 eventloop.ml/mli        event loop
 deque.ml/mli            undo/redo queue
+*.js                    js_of_ocaml compiled output
 ```
 
 ---

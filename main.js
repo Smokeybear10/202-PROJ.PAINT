@@ -206,6 +206,8 @@ document.documentElement.classList.replace('no-js', 'js');
   // ── mouse parallax on hero brushstrokes ───────────────────────
   var tmx = 0, tmy = 0, cmx = 0, cmy = 0;
   var heroEl = document.getElementById('home');
+  var heroVisible = true;
+  var rafId = null;
 
   heroEl.addEventListener('mousemove', function (e) {
     var r = heroEl.getBoundingClientRect();
@@ -215,12 +217,20 @@ document.documentElement.classList.replace('no-js', 'js');
   heroEl.addEventListener('mouseleave', function () { tmx = 0; tmy = 0; });
 
   function parallaxTick() {
+    rafId = null;
     cmx += (tmx - cmx) * 0.06;
     cmy += (tmy - cmy) * 0.06;
     if (brush1) brush1.style.transform = 'rotate(-11deg) translate(' + (cmx * -22).toFixed(1) + 'px,' + (cmy * -14).toFixed(1) + 'px)';
     if (brush2) brush2.style.transform = 'rotate(7deg)   translate(' + (cmx *  16).toFixed(1) + 'px,' + (cmy *  10).toFixed(1) + 'px)';
     if (brush3) brush3.style.transform = 'rotate(18deg)  translate(' + (cmx * -10).toFixed(1) + 'px,' + (cmy *   8).toFixed(1) + 'px)';
-    requestAnimationFrame(parallaxTick);
+    if (heroVisible) rafId = requestAnimationFrame(parallaxTick);
+  }
+
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (entries) {
+      heroVisible = entries[0].isIntersecting;
+      if (heroVisible && !rafId) rafId = requestAnimationFrame(parallaxTick);
+    }).observe(heroEl);
   }
 
 
@@ -237,9 +247,12 @@ document.documentElement.classList.replace('no-js', 'js');
   }
 
   // ── init ──────────────────────────────────────────────────────
+  var backToTop = document.getElementById('backToTop');
+  if (backToTop) backToTop.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', onScroll);
   onScroll();
-  parallaxTick();
+  rafId = requestAnimationFrame(parallaxTick);
 
 })();

@@ -3,11 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tile Maker — tile.ml</title>
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<title>Gradient Lab — gradient.ml</title>
+<meta name="description" content="Color gradient lab written in OCaml. Place color nodes and blend using inverse distance weighting. Drag to mix colors in real-time and export as PNG.">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,400&family=Inter:wght@400;500;600&family=Caveat:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,400&family=Inter:wght@400;500;600&family=Caveat:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,400&family=Inter:wght@400;500;600&family=Caveat:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap"></noscript>
 <style>
   :root {
     --paper: #f5f0e6;
@@ -44,26 +46,26 @@
   h1 { font-family: 'Fraunces', serif; font-size: clamp(2.5rem, 6vw, 3.75rem); font-weight: 700; letter-spacing: -0.02em; margin: 0 0 0.75rem; color: var(--ink); }
   .subtitle { color: var(--ink-dim); font-size: 1.05rem; margin: 0 0 2.5rem; line-height: 1.55; max-width: 560px; text-align: center; }
   .subtitle kbd { font-family: 'JetBrains Mono', monospace; font-size: 0.82em; background: var(--paper-dark); border: 1.5px solid var(--ink); padding: 0.15em 0.45em; border-radius: 3px; color: var(--ink); box-shadow: 1.5px 1.5px 0 var(--ink); font-weight: 500; }
-  .canvas-frame { background: var(--paper); border: 2px solid var(--ink); border-radius: 4px; padding: 0; box-shadow: 8px 8px 0 var(--ink); transform: rotate(-0.3deg); position: relative; width: 100%; max-width: 1000px; }
+  .canvas-frame { background: var(--paper); border: 2px solid var(--ink); border-radius: 4px; padding: 0; box-shadow: 8px 8px 0 var(--ink); transform: rotate(0.3deg); position: relative; width: 100%; max-width: 1000px; }
   .canvas-frame iframe { display: block; width: 100%; height: 640px; border: none; background: var(--paper); border-radius: 2px; }
-  .canvas-frame::after { content: 'tile.ml'; position: absolute; top: -0.8rem; right: 1rem; background: var(--orange); color: var(--paper); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; padding: 0.2rem 0.6rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; z-index: 2; }
+  .canvas-frame::after { content: 'gradient.ml'; position: absolute; top: -0.8rem; right: 1rem; background: var(--orange); color: var(--paper); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; padding: 0.2rem 0.6rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; z-index: 2; }
   footer { padding: 1.5rem 2rem; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--ink-muted); border-top: 1px solid rgba(26, 26, 26, 0.15); }
   @media (max-width: 680px) { .masthead { padding: 0.85rem 1.25rem; } main { padding: 2.5rem 1rem 6rem; } }
 </style>
 </head>
 <body>
 <header class="masthead">
-  <a href="index.html" class="mast-title">PAINT<span class="dot">.</span>ML</a>
+  <a href="../index.html" class="mast-title">PAINT<span class="dot">.</span>ML</a>
 </header>
 <main>
-  <a href="index.html#demosWrap" class="back-btn">← all demos</a>
-  <div class="demo-kicker">Nº 3 · the pattern</div>
-  <h1>Tile Maker</h1>
-  <p class="subtitle">Design a repeating tile and watch it tessellate in real-time. Draw, fill, mirror with symmetry modes. Hit <kbd>R</kbd> for a random pattern, <kbd>Z</kbd> to undo.</p>
+  <a href="../index.html#demosWrap" class="back-btn">← all demos</a>
+  <div class="demo-kicker">Nº 2 · the mixer</div>
+  <h1>Gradient Lab</h1>
+  <p class="subtitle">Place color nodes, drag to blend. Inverse distance weighting mixes colors smoothly in real-time. Right-click to remove, <kbd>Z</kbd> to undo.</p>
   <div class="canvas-frame">
-    <iframe src="tile-live.html" title="tile.ml live demo" loading="eager"></iframe>
+    <iframe src="gradient-live.html" title="gradient.ml live demo" loading="eager"></iframe>
   </div>
 </main>
-<footer>pixel grid · flood fill · symmetry tessellation · vanilla JS</footer>
+<footer>canvas 2D radial gradients · composite blending · vanilla JS</footer>
 </body>
 </html>
